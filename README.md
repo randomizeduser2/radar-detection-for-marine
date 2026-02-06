@@ -1,6 +1,6 @@
 # Radar Standby Tespiti
 
-Bu proje, radar görüntülerinden "Standby" durumunun açık veya kapalı olduğunu tespit eden hibrit bir Java-Python uygulamasıdır. Görüntü işleme ve OCR işlemleri için Python (YOLOv8 + EasyOCR) kullanılırken, genel akış kontrolü ve dosya yönetimi Java üzerinden sağlanmaktadır.
+Bu proje, radar görüntülerinden "Standby" durumunun açık veya kapalı olduğunu tespit eden hibrit bir Java-Python uygulamasıdır. Görüntü işleme ve OCR işlemleri için Python (YOLO26-nano + EasyOCR) kullanılırken, genel akış kontrolü ve dosya yönetimi Java üzerinden sağlanmaktadır.
 
 ## Özellikler
 
