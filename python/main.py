@@ -3,9 +3,8 @@ import numpy as np
 import easyocr
 import re
 from ultralytics import YOLO
-import sys # Argument okumak için gerekli
+import sys 
 
-# OCR okuyucuyu bir kez başlatıyoruz (hız için fonksiyon dışında tutalım)
 reader = easyocr.Reader(['en']) 
 
 def isStandBy(image_path, model_name='model.pt'):
@@ -16,18 +15,18 @@ def isStandBy(image_path, model_name='model.pt'):
     if img is None:
         return False
 
-    # 2. Tahmin Yap
+    # 2. Tahmin Yap daireyi prediction yapıyorum
     results = model.predict(source=img, conf=0.5, verbose=False)[0]
 
-    # Eğer maske yoksa direkt çık
+    # Eğer daire yoksa direkt çık
     if results.masks is None:
-        return None # Radar tespiti yapılamadı.
+        return None
 
-    # STANDBY OFF, TX OFF, STANDBY-OFF gibi ihtimalleri kapsar
+    # STANDBY OFF, TX OFF, STANDBY-OFF gibi ihtimalleri kapsayacak
     standby_patterns = re.compile(r"(STANDBY\s*OFF|TX\s*OFF)", re.IGNORECASE)
 
     for i, poly_points in enumerate(results.masks.xy):
-        # --- A. Segment Edilen Bölgeyi Kesip Hazırlama ---
+        # Segment Edilen Daireyi Poligon Noktalarına Dönüştür
         poly_points = np.array(poly_points, dtype=np.int32)
         
         # Nesnenin etrafındaki en küçük kareyi bul (Bounding Box)
@@ -41,11 +40,11 @@ def isStandBy(image_path, model_name='model.pt'):
         masked_img = cv2.bitwise_and(img, img, mask=mask)
         crop_img = masked_img[y:y+h, x:x+w]
 
-        # --- B. EasyOCR ile Metin Okuma ---
+        # EasyOCR ile Metin Okuma
         ocr_results = reader.readtext(crop_img, detail=0)
         detected_text = " ".join(ocr_results).upper()
         
-        # --- C. Regex Kontrolü ---
+        # Regex Kontrolü
         if standby_patterns.search(detected_text):
             # Java'nın veya Terminalin yakalaması için kritik bilgiyi basıyoruz
             print(f"[*]: STANDBY durum tespit edildi! ({detected_text})")
@@ -54,7 +53,6 @@ def isStandBy(image_path, model_name='model.pt'):
     return False
 
 if __name__ == "__main__":
-    # Terminalden gelen argüman kontrolü
     if len(sys.argv) > 1:
         file_path = sys.argv[1]
         result = isStandBy(file_path)

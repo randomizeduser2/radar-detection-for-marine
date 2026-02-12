@@ -18,7 +18,7 @@ public class Main {
         File testFolder = new File("test"); // Root'taki klasör
 
         if (!testFolder.exists() || !testFolder.isDirectory()) {
-            System.err.println("[HATA]: 'test-inputs' klasörü bulunamadı!");
+            System.err.println("[HATA]: 'test' klasörü bulunamadı!");
             return;
         }
 

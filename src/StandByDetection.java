@@ -14,17 +14,18 @@ import java.util.Iterator;
 
 public class StandByDetection {
 
-    private static final String PYTHON_PATH = "python3.11";
-    private static final String PYTHON_FOLDER = "python";
-    private static final String SCRIPT_NAME = "main.py";
-    private static final String TRAINING_DATA_DIR = "radar_dataset/training_data/";
+    private static final String PYTHON_PATH_ENV     = "PYTHON_BIN";
+    private static final String PYTHON_FOLDER       = "python";
+    private static final String SCRIPT_NAME         = "main.py";
+    private static final String TRAINING_DATA_DIR   = "radar_dataset/training_data/";
 
     public static void processRadarImage(String imagePath) {
         try {
             File imageFile = new File(imagePath);
             String absoluteImagePath = imageFile.getAbsolutePath();
 
-            ProcessBuilder pb = new ProcessBuilder(PYTHON_PATH, SCRIPT_NAME, absoluteImagePath);
+            String pythonExecutable = resolvePythonExecutable();
+            ProcessBuilder pb = new ProcessBuilder(pythonExecutable, SCRIPT_NAME, absoluteImagePath);
             pb.directory(new File(PYTHON_FOLDER));
             pb.redirectErrorStream(true);
 
@@ -49,6 +50,33 @@ public class StandByDetection {
         }
     }
 
+    private static String resolvePythonExecutable() {
+        String envValue = System.getenv(PYTHON_PATH_ENV);
+        if (envValue != null && !envValue.isBlank()) {
+            return envValue.trim();
+        }
+
+        String[] candidates = {
+                "/usr/bin/python3.11",
+                "/usr/bin/python3",
+                "/usr/bin/python",
+                "python3",
+                "python"
+        };
+
+        for (String candidate : candidates) {
+            if (candidate.startsWith("/")) {
+                if (new File(candidate).exists()) {
+                    return candidate;
+                }
+            } else {
+                return candidate;
+            }
+        }
+
+        return "python3";
+    }
+
     private static void handleResult(String result, String imagePath) {
         System.out.println("-----------------------------------------");
         switch (result) {
@@ -70,7 +98,7 @@ public class StandByDetection {
     }
 
     /**
-     * Resmi okur, JPEG %80 kalite ile sıkıştırır ve UTC ismiyle kaydeder.
+     * Resmi okuyorum, JPEG %80 kalite ile sıkıştırır ve UTC ismiyle kaydeder.
      */
     private static void archiveImage(String sourcePath, String folderName) {
         try {
@@ -103,7 +131,7 @@ public class StandByDetection {
                 ImageWriteParam param = writer.getDefaultWriteParam();
                 if (param.canWriteCompressed()) {
                     param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-                    param.setCompressionQuality(0.8f); // 0.0 ile 1.0 arası (0.8 = %80 kalite)
+                    param.setCompressionQuality(0.8f);
                 }
 
                 writer.write(null, new IIOImage(image, null, null), param);
